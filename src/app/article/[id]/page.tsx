@@ -1,20 +1,18 @@
 import React from "react";
 import ArticleDetail from "@/components/ArticleDetail";
+import Header from "@/components/Header";
 
-interface ArticlePageProps {
-  params: {
-    id: string;
-  };
-}
-
-export default async function ArticlePage({ params }: ArticlePageProps) {
-  const { id } = await params;
-  //npm run lint実行時にエラーが出るので、console.logを追加
-  console.log(id);
+export default async function ArticlePage({
+  params,
+}: {
+  params: { id: string };
+}) {
+  const { id } = params;
 
   return (
-    <main>
-      <ArticleDetail />
-    </main>
+    <>
+      <Header />
+      <ArticleDetail id={id} />
+    </>
   );
 }
