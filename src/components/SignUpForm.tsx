@@ -1,6 +1,8 @@
 "use client";
 import React, { useState } from "react";
 import Link from "next/link";
+import { useRouter } from "next/navigation";
+import { supabase } from "@/utils/supabase";
 
 const SignUpForm = () => {
   const [formData, setFormData] = useState({
@@ -8,11 +10,51 @@ const SignUpForm = () => {
     email: "",
     password: "",
   });
+  const router = useRouter();
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    // ここにサインアップのロジックを実装
     console.log("Form submitted:", formData);
+
+    try {
+      // 1. Supabase Authでユーザー登録
+      const { data: signUpData, error: signUpError } =
+        await supabase.auth.signUp({
+          email: formData.email,
+          password: formData.password,
+        });
+
+      if (signUpError) {
+        alert("サインアップに失敗しました：" + signUpError.message);
+        return;
+      }
+
+      const userId = signUpData.user?.id;
+      if (!userId) {
+        alert("ユーザーIDの取得に失敗しました。");
+        return;
+      }
+
+      // 2. usersテーブルにnameなど追加登録
+      const { error: insertError } = await supabase.from("users").insert([
+        {
+          id: userId,
+          name: formData.name,
+          email: formData.email,
+        },
+      ]);
+
+      if (insertError) {
+        alert("ユーザーデータの保存に失敗しました：" + insertError.message);
+        return;
+      }
+
+      alert("サインアップ成功！ログインページに移動します。");
+      router.push("/login");
+    } catch (error) {
+      console.error("An unexpected error occurred:", error);
+      alert("予期しないエラーが発生しました。");
+    }
   };
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
