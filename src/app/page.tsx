@@ -27,6 +27,10 @@ type Category = {
 export default function Page() {
   const [blogPosts, setBlogPosts] = useState<Post[]>([]);
   const [categories, setCategories] = useState<Category[]>([]);
+  const [currentPage, setCurrentPage] = useState(1);
+
+  const pageSize = 9;
+  const totalPages = Math.ceil(blogPosts.length / pageSize);
 
   useEffect(() => {
     const fetchPosts = async () => {
@@ -56,10 +60,16 @@ export default function Page() {
     fetchCategories();
   }, []);
 
+  // ページ変更時
   const handlePageChange = (page: number) => {
-    console.log("選択されたページ:", page);
-    // ここで API を叩いてデータ再取得、スクロールトップするなどの処理
+    setCurrentPage(page);
+    window.scrollTo({ top: 0, behavior: "smooth" });
   };
+
+  // 表示する記事をスライス
+  const startIndex = (currentPage - 1) * pageSize;
+  const endIndex = startIndex + pageSize;
+  const displayedPosts = blogPosts.slice(startIndex, endIndex);
 
   return (
     <>
@@ -88,7 +98,7 @@ export default function Page() {
 
         <main>
           <div className="max-w-6xl w-full mx-auto flex flex-wrap gap-16 m-16 justify-center">
-            {blogPosts.map((post, idx) => {
+            {displayedPosts.map((post, idx) => {
               const category = categories.find(
                 (cat) => String(cat.id) === String(post.category_id),
               );
@@ -102,7 +112,12 @@ export default function Page() {
             })}
           </div>
           <div style={{ padding: 20 }}>
-            <Pagination totalPages={10} onPageChange={handlePageChange} />
+            <Pagination
+              totalPages={totalPages}
+              pageSize={pageSize}
+              currentPage={currentPage}
+              onPageChange={handlePageChange}
+            />
           </div>
         </main>
         <footer className="bg-white mt-16 py-4 text-center text-sm text-gray-500">
